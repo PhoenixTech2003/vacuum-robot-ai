@@ -10,6 +10,7 @@ export function VacuumRobotAgent(data: VacuumRobot) {
     console.log(`Room ${room.roomName} is already clean moving to next room`);
     return room;
   });
+  console.log("Finished cleaning all rooms terminating now")
   return cleanedRooms
 
 }

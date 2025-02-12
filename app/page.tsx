@@ -1,103 +1,109 @@
-import Image from "next/image";
-import { schoolRooms } from "@/lib/environment";
-import { VacuumRobotAgent } from "@/lib/agent";
-export default function Home() {
-  schoolRooms({agent: VacuumRobotAgent, rooms: [{roomName: "A", state: "clean"},{roomName: "B", state: "dirty"}]})
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+"use client"
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+import { useState, useEffect } from "react"
+import { motion } from "framer-motion"
+import type { Room, CleaningStatus } from "@/types/types"
+import { VacuumRobotAgent } from "./VacuumRobotAgent"
+import { Loader2 } from "lucide-react"
+
+const initialRooms: Room[] = [
+  { roomName: "A", state: "dirty", position: { x: 0, y: 0 } },
+  { roomName: "B", state: "dirty", position: { x: 200, y: 0 } },
+  { roomName: "C", state: "dirty", position: { x: 0, y: 200 } },
+  { roomName: "D", state: "dirty", position: { x: 200, y: 200 } },
+]
+
+const randomizeRooms = (rooms: Room[]): Room[] => {
+  return rooms.map((room) => ({
+    ...room,
+    state: Math.random() > 0.5 ? "clean" : "dirty",
+  }))
 }
+
+export default function Home() {
+  const [rooms, setRooms] = useState<Room[]>(randomizeRooms(initialRooms))
+  const [vacuumPosition, setVacuumPosition] = useState({ x: 0, y: 0 })
+  const [currentRoomIndex, setCurrentRoomIndex] = useState(0)
+  const [cleaningStatus, setCleaningStatus] = useState<CleaningStatus>("idle")
+
+  useEffect(() => {
+    if (cleaningStatus === "cleaning") {
+      const timer = setTimeout(() => {
+        const updatedRooms = VacuumRobotAgent({ allRooms: [rooms[currentRoomIndex]], position: vacuumPosition })
+        setRooms(rooms.map((room, index) => (index === currentRoomIndex ? updatedRooms[0] : room)))
+
+        const nextRoomIndex = (currentRoomIndex + 1) % rooms.length
+        setCurrentRoomIndex(nextRoomIndex)
+        setVacuumPosition(rooms[nextRoomIndex].position)
+
+        // Randomly make some rooms dirty again
+        setRooms((prevRooms) => prevRooms.map((room) => (Math.random() > 0.8 ? { ...room, state: "dirty" } : room)))
+      }, 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [cleaningStatus, currentRoomIndex, rooms, vacuumPosition])
+
+  const startCleaning = () => {
+    setCleaningStatus("cleaning")
+    setCurrentRoomIndex(0)
+    setVacuumPosition(rooms[0].position)
+  }
+
+  const stopCleaning = () => {
+    setCleaningStatus("stopped")
+  }
+
+  return (
+    <div className="container mx-auto p-4 min-h-screen bg-gray-100 flex flex-col items-center justify-center">
+      <h1 className="text-4xl font-bold mb-8 text-gray-800">Vacuum Cleaner Simulation</h1>
+      <div className="flex space-x-4 mb-8">
+        <button
+          onClick={startCleaning}
+          disabled={cleaningStatus === "cleaning"}
+          className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full font-semibold transition duration-300 ease-in-out disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          {cleaningStatus === "cleaning" ? (
+            <span className="flex items-center">
+              Cleaning <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+            </span>
+          ) : (
+            "Start Cleaning"
+          )}
+        </button>
+        <button
+          onClick={stopCleaning}
+          disabled={cleaningStatus !== "cleaning"}
+          className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full font-semibold transition duration-300 ease-in-out disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          Stop
+        </button>
+      </div>
+      <div className="relative w-[440px] h-[440px] border-4 border-gray-300 rounded-lg bg-white shadow-lg">
+        {rooms.map((room, index) => (
+          <div
+            key={room.roomName}
+            className={`absolute w-[200px] h-[200px] border-2 border-gray-300 rounded-lg ${
+              room.state === "clean" ? "bg-green-200" : "bg-red-200"
+            } transition-colors duration-300 ease-in-out`}
+            style={{ left: room.position.x, top: room.position.y }}
+          >
+            <div className="flex flex-col items-center justify-center h-full">
+              <p className="text-2xl font-bold">{room.roomName}</p>
+              <p className="text-lg capitalize">{room.state}</p>
+            </div>
+          </div>
+        ))}
+        <motion.div
+          className="absolute w-[60px] h-[60px] bg-gray-800 rounded-full flex items-center justify-center shadow-lg"
+          animate={vacuumPosition}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        >
+          <div className="w-[40px] h-[40px] bg-gray-600 rounded-full flex items-center justify-center">
+            <div className="w-[20px] h-[20px] bg-gray-400 rounded-full"></div>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  )
+}
+

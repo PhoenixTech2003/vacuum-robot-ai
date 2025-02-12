@@ -1,14 +1,18 @@
-export type VacuumRobot = {
-    allRooms: Room[]
+export type Room = {
+  state: "clean" | "dirty"
+  roomName: string
+  position: { x: number; y: number }
+}
 
+export type VacuumRobot = {
+  allRooms: Room[]
+  position: { x: number; y: number }
 }
 
 export type Environment = {
-    rooms :Room[]
-    agent: (data:VacuumRobot) => {state:string, roomName:string}[];
+  rooms: Room[]
+  agent: (data: VacuumRobot) => Room[]
 }
 
-export type Room = {
-    state : "clean" | "dirty"
-    roomName : string
-}
+export type CleaningStatus = "idle" | "cleaning" | "stopped"
+
