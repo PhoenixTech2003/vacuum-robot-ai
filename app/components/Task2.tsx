@@ -122,7 +122,7 @@ export default function Task2() {
           />
         ))}
 
-        {rooms.map((room, index) => (
+        {rooms.map((room) => (
           <div
             key={room.roomName}
             className={`absolute w-[200px] h-[120px] border-2 border-gray-300 rounded-lg ${

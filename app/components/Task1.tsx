@@ -79,7 +79,7 @@ export default function Task1() {
         </button>
       </div>
       <div className="relative w-[460px] h-[220px] border-4 border-gray-300 rounded-lg bg-white shadow-lg">
-        {rooms.map((room, index) => (
+        {rooms.map((room) => (
           <div
             key={room.roomName}
             className={`absolute w-[220px] h-[200px] border-2 border-gray-300 rounded-lg ${
