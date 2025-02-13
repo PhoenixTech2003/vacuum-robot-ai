@@ -1,4 +1,6 @@
 # Vacuum Cleaner AI Agent
+- CHIYEMBEKEZO CHILEMBWE (BIT/21/SS/005)
+- HARTSON LEBIUM DOVIKO (BIT/21/SS/009)
 
 This repository demonstrates a basic vacuum cleaner robot designed to clean rooms. The simulation can be accessed at the following site: [Vacuum Robot AI](https://vacuum-robot-ai.vercel.app/). Below is a brief overview of the implementation for the tasks.
 
