@@ -16,3 +16,5 @@ export type Environment = {
 
 export type CleaningStatus = "idle" | "cleaning" | "stopped"
 
+export type Task = "task1" | "task2"
+
